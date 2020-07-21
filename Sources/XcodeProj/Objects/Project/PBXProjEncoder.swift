@@ -32,6 +32,37 @@ final class StateHolder {
     }
 }
 
+struct GarbageCollector {
+    let proj: PBXProj
+
+    func deleteUnreachableObjects() {
+        var unmarked: Set<PBXObjectReference> = []
+        proj.objects.forEach { object in
+            unmarked.insert(object.reference)
+        }
+
+        func isReachableFromRoot(_ reference: PBXObjectReference) -> Bool {
+            if reference == proj.rootObjectReference {
+                return true
+            }
+            var reachableFromParent = false
+            reference.objects?.forEach { parent in
+                if !reachableFromParent, unmarked.contains(parent.reference), isReachableFromRoot(parent.reference) {
+                    unmarked.remove(parent.reference)
+                    reachableFromParent = true
+                }
+            }
+            return reachableFromParent
+        }
+
+        while let reference = unmarked.popFirst() {
+            if !isReachableFromRoot(reference) {
+                proj.objects.delete(reference: reference)
+            }
+        }
+    }
+}
+
 /// Encodes your PBXProj files to String
 // swiftlint:disable:next type_body_length
 final class PBXProjEncoder {
@@ -45,6 +76,10 @@ final class PBXProjEncoder {
 
     // swiftlint:disable function_body_length
     func encode(proj: PBXProj) throws -> String {
+        if outputSettings.deleteUnreferencedObjects {
+            let garbageCollector = GarbageCollector(proj: proj)
+            garbageCollector.deleteUnreachableObjects()
+        }
         try referenceGenerator.generateReferences(proj: proj)
         guard let rootObject = proj.rootObjectReference else { throw PBXProjEncoderError.emptyProjectReference }
 

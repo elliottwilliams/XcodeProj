@@ -153,6 +153,8 @@ public struct PBXOutputSettings {
     /// The format of project file references
     let projReferenceFormat: PBXReferenceFormat
 
+    let deleteUnreferencedObjects: Bool
+
     /**
      Default initializer
 
@@ -163,10 +165,12 @@ public struct PBXOutputSettings {
     public init(projFileListOrder: PBXFileOrder = .byUUID,
                 projNavigatorFileOrder: PBXNavigatorFileOrder = .unsorted,
                 projBuildPhaseFileOrder: PBXBuildPhaseFileOrder = .unsorted,
-                projReferenceFormat: PBXReferenceFormat = .xcode) {
+                projReferenceFormat: PBXReferenceFormat = .xcode,
+                deleteUnreferencedObjects: Bool = true) {
         self.projFileListOrder = projFileListOrder
         self.projNavigatorFileOrder = projNavigatorFileOrder
         self.projBuildPhaseFileOrder = projBuildPhaseFileOrder
         self.projReferenceFormat = projReferenceFormat
+        self.deleteUnreferencedObjects = deleteUnreferencedObjects
     }
 }
